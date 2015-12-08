@@ -2,6 +2,7 @@
 layout: workshop
 root: .
 venue: University of Illinois   # brief name of host site without address (e.g., "Euphoric State University")
+room: "1030 National Center for Supercomputing Applications"
 address: 1205 West Clark St, Urbana, Illinois    # street address of workshop (e.g., "123 Forth Street, Blimingen, Euphoria")
 country: us    # country (lowercase two-letter ISO code such as "fr" - see https://en.wikipedia.org/wiki/ISO_3166-1)
 language: en   # language (lowercase two-letter ISO code such as "fr" - see https://en.wikipedia.org/wiki/ISO_639-1)
@@ -93,10 +94,19 @@ eventbrite: "19803149754"      # optional (insert the alphanumeric key for Event
 <p id="where">
   <strong>Where:</strong>
   {{page.address}}.
-  Get directions with
+</p>
+<iframe
+  width="600"
+  height="240"
+  frameborder="0" style="border:0"
+  src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCVCjriOnZdziOGJRl0DImyTmRBi4rdw9w
+    &q=National+Center+for+Supercomputing+Applications%2C+Urbana+IL" allowfullscreen>
+</iframe>
+  <!--Get directions with
   <a href="//www.openstreetmap.org/?mlat={{page.latlng | replace:',','&mlon='}}&zoom=16">OpenStreetMap</a>
   or
   <a href="//maps.google.com/maps?q={{page.latlng}}">Google Maps</a>.
+  -->
 </p>
 {% endif %}
 
