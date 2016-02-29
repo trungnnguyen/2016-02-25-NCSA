@@ -1,0 +1,184 @@
+---
+title: "demonstration"
+author: "David LeBauer"
+date: "February 26, 2016"
+output: pdf_document
+---
+
+## Intro R
+
+This is demonstration code written while teaching the SWC R Novice Gapminder lesson http://swcarpentry.github.io/r-novice-gapminder/.
+
+
+```{r intro}
+for ( i in 1:5){
+  print(paste("there are ", i, "apples"))
+}
+#install.packages("ggplot2")
+#install.packages("plyr")
+#install.packages("dplyr")
+#install.packages("gapminder")
+
+mass <- 4
+age <- 122
+mass2 <- mass * 5
+
+set.seed(1)
+matrix(1:50, nrow = 10, ncol = 5)[5,5]
+
+matrix(1:5, nrow = 10, ncol = 10)
+list(number = 1, list = list(number = 1, letter = "a", truefalsething = TRUE, 1+4i))
+
+
+mydf <- data.frame(id = c('a', 'b', 'c', 'd', 'e', 'f'),
+                   x  = 1:6,
+                   y  = 214:219,
+                   z  = rnorm(6),
+                   e  = LETTERS[6:11])
+
+mydf2 <- cbind(mydf, ans = mydf$x * mydf$y)
+mydf3 <- rbind(mydf2, list('z', 2, 222, -2, 'F', 9))
+
+gapminder <- read.csv("~/rezbaz/data/gapminder-FiveYearData.csv")
+
+lm(lifeExp ~ continent, data = gapminder)
+
+reg <- lm(lifeExp ~ gdpPercap, data = gapminder)
+
+hist(predict(reg, data = data.frame(gdpPercap = 900)))
+
+range(predict(reg, data = data.frame(gdpPercap = 900)))
+
+
+```
+
+## Functions
+
+### Function 1: Convert C to Kelvin
+
+```{r cars}
+
+celsius2kelvin <- function(temp_c){
+  temp_k <- temp_c + 273.15
+  return(temp_k)
+}
+
+tempc <- rnorm(100, 10, 1)
+tempk <- celsius2kelvin(temp_c = tempc)
+plot(tempc, tempk)
+
+```
+
+## plotting using ggplot
+
+
+```{r pressure}
+library(ggplot2)
+gapminder <- read.csv("~/rezbaz/data/gapminder-FiveYearData.csv")
+
+ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) + 
+  geom_point(alpha = 0.25, size = 0.5) +
+  geom_smooth(method = 'lm') + 
+  facet_wrap(~continent) + 
+  scale_x_log10()
+
+
+ggplot(data = gapminder, 
+       aes(x = year, y = lifeExp, by = country)) + 
+  geom_point(alpha = 0.25) + 
+  geom_line(aes(color = continent), alpha = 0.25)
+
+ggplot(data = gapminder, aes(x = country, y = lifeExp)) + 
+  geom_violin() + 
+  scale_y_log10() + 
+  facet_wrap(~continent, scales = 'free_x')
+  
+ggplot(data = gapminder, aes(x = gdpPercap, fill = continent)) + geom_density(alpha = 0.5) + facet_wrap(~year) + scale_x_log10()
+
+summary(gapminder)
+```
+
+## Using databases from R
+
+Here are a few different methods. I prefer the `dplyr` approach because it helps to break down and simplify the syntax of complex operations in SQL. Here we show it with sqlite, but it also works with (almost) any (relational) database manager see `?src_sql`, `?src_mysql`, `src_postgres`.
+
+### `dplyr`
+
+```{r dplyr-sql}
+library(dplyr)
+
+surveydb <- src_sqlite("~/swcarpentry/my_project/data/survey.db")
+survey <- tbl(surveydb, 'Survey')
+class(survey)
+visited <- tbl(surveydb, 'Visited')
+
+### The following three are equivalent
+
+#3 the non piped approach
+survey_lakeroe <- filter(survey, person %in% c('lake', 'roe'))
+
+#2 What the above is doing. if survey is not first argument, use '.' where it belongs
+survey_lakeroe <- survey %>%
+  filter(., person %in% c('lake', 'roe'))
+
+#1 The simple but most common syntax for dplyr, shorthand for above:
+survey_lakeroe <- survey %>%
+  filter(person %in% c('lake', 'roe'))
+
+## another use of pipes
+
+gapminder %>% 
+  select(country, gdpPercap) %>% 
+  filter(country == "Zimbabwe")
+
+# two equivalent ways of joining
+
+## send an SQL statement:
+tbl(surveydb, 
+    sql("Select * from visited join survey on visited.ident = survey.taken"))
+
+## the dplyr syntax
+visited_join_survey <- visited %>% 
+  left_join(survey, by = c('taken' = 'ident'))
+
+explain(visited_join_survey)
+
+visited_join_survey 
+
+x <- collect(visited_join_survey)
+
+```
+
+### `sqldf`
+
+Treats dataframes as database tables.
+
+
+```{r }
+
+library(sqldf)
+surveydf <- as.data.frame(survey)
+visiteddf <- as.data.frame(visited)
+
+sqldf("Select * from visiteddf join surveydf on visiteddf.ident = surveydf.taken")
+
+```
+
+
+### The RSQLite package
+
+Very powerful. For loading data from a database see `?dbWriteTable`
+
+```{r sqlite}
+library(RSQLite)
+
+surveydb <- dbConnect(drv = dbDriver("SQLite"), "~/swcarpentry/my_project/data/survey.db")
+
+dbListTables(surveydb)
+dbListFields(surveydb, "visited")
+
+dbGetQuery(surveydb, "Select * from visited join survey on visited.ident = survey.taken")
+
+```
+
+
